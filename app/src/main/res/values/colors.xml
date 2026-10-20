@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand">#1F6F5C</color>
+    <color name="brand_dark">#7FD3BC</color>
+    <color name="launcher_background">#1F6F5C</color>
+    <color name="call_incoming">#2E7D32</color>
+    <color name="call_outgoing">#1565C0</color>
+    <color name="call_missed">#C62828</color>
+    <color name="call_other">#6D6D6D</color>
+</resources>

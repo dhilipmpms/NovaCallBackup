@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Permissions and compatibility" />
+
+        <TextView
+            android:id="@+id/permissionStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/grantButton"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/grant_permission" />
+
+            <Button
+                android:id="@+id/appInfoButton"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/open_app_info" />
+        </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="16dp" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Automatic backup" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/autoEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Back up automatically" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Runs in the background roughly at the chosen interval. Android decides the exact time and may delay it (battery saver, Doze, app standby). Older backups are never deleted automatically."
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+
+        <RadioGroup
+            android:id="@+id/autoInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/interval1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily" />
+
+            <RadioButton
+                android:id="@+id/interval3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Every 3 days" />
+
+            <RadioButton
+                android:id="@+id/interval7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Weekly" />
+        </RadioGroup>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/autoCharging"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Only while charging" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/autoSkipUnchanged"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Skip if call history has not changed" />
+
+        <TextView
+            android:id="@+id/autoStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="16dp" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Restore history" />
+
+        <TextView
+            android:id="@+id/restoreHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="16dp" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Storage and privacy" />
+
+        <TextView
+            android:id="@+id/storageInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+
+        <TextView
+            android:id="@+id/about"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+    </LinearLayout>
+</ScrollView>

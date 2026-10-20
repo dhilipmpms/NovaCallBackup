@@ -1,0 +1,120 @@
+package org.opencall.archive.ui
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.opencall.archive.BuildConfig
+import org.opencall.archive.R
+import org.opencall.archive.data.CallLogAccess
+import org.opencall.archive.databinding.FragmentSettingsBinding
+import org.opencall.archive.work.AutoBackupScheduler
+import org.opencall.archive.work.AutoBackupSettings
+
+class SettingsFragment : Fragment() {
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var permissions: CallLogPermissionRequester
+    private lateinit var settings: AutoBackupSettings
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        permissions = CallLogPermissionRequester(this, { requireActivity() }) { refresh() }
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        settings = AutoBackupSettings(requireContext())
+        binding.grantButton.setOnClickListener { permissions.request() }
+        binding.appInfoButton.setOnClickListener { CallLogPermissionRequester.openAppInfo(requireContext()) }
+
+        binding.autoEnabled.isChecked = settings.enabled
+        binding.autoCharging.isChecked = settings.requireCharging
+        binding.autoSkipUnchanged.isChecked = settings.skipUnchanged
+        binding.autoInterval.check(
+            when (settings.intervalDays) { 3 -> R.id.interval3; 7 -> R.id.interval7; else -> R.id.interval1 },
+        )
+        binding.autoEnabled.setOnCheckedChangeListener { _, on ->
+            if (on && !CallLogAccess.hasRead(requireContext())) {
+                binding.autoEnabled.isChecked = false
+                permissions.request()
+                return@setOnCheckedChangeListener
+            }
+            settings.enabled = on; reschedule()
+        }
+        binding.autoCharging.setOnCheckedChangeListener { _, on -> settings.requireCharging = on; reschedule() }
+        binding.autoSkipUnchanged.setOnCheckedChangeListener { _, on -> settings.skipUnchanged = on }
+        binding.autoInterval.setOnCheckedChangeListener { _, id ->
+            settings.intervalDays = when (id) { R.id.interval3 -> 3; R.id.interval7 -> 7; else -> 1 }
+            reschedule()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refresh()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        if (!hidden) refresh()
+    }
+
+    private fun reschedule() {
+        AutoBackupScheduler.apply(requireContext())
+        refresh()
+    }
+
+    private fun refresh() {
+        val ctx = context ?: return
+        if (_binding == null) return
+        val caps = CallLogAccess.capabilities(ctx)
+        binding.permissionStatus.text = buildString {
+            append("Call log on this device: ").append(if (caps.providerAvailable) "available" else "not available").append('\n')
+            append("Read call log: ").append(if (caps.canRead) "granted" else "not granted").append('\n')
+            append("Write call log (needed to restore): ").append(if (caps.canWrite) "granted" else "not granted").append('\n')
+            append("Android version: API ").append(caps.sdkInt).append("\n\n")
+            append("Restoring does not require this app to be your default phone app. Android lets any app ")
+            append("that holds the \"Call logs\" permission add entries, so this app never asks to replace your dialer. ")
+            append(if (caps.isDefaultDialer) "(This app is currently set as default phone app.)" else "Your default phone app is unchanged.")
+        }
+        binding.grantButton.isVisible = caps.providerAvailable && !(caps.canRead && caps.canWrite)
+
+        val last = settings.lastRunAt
+        binding.autoStatus.text = if (last == 0L) "Automatic backup has not run yet."
+        else "Last automatic run: ${Fmt.date(last)} — ${settings.lastResult}"
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val (sessions, bytes) = withContext(Dispatchers.IO) {
+                ctx.app.restoreController.sessions() to ctx.app.repository.store.list().sumOf { it.sizeBytes }
+            }
+            if (_binding == null) return@launch
+            binding.restoreHistory.text = if (sessions.isEmpty()) "No restores yet." else sessions.take(10).joinToString("\n\n") { s ->
+                val restored = s.report?.let { it.restored + it.restoredReduced } ?: s.restored
+                val failed = s.report?.let { it.failedInsert + it.failedVerification } ?: s.failed
+                "${Fmt.date(s.header.startedAt)} — \"${s.header.backupLabel}\"\n" +
+                    "Status: ${s.status.name.lowercase().replace('_', ' ')} · restored $restored · failed $failed" +
+                    (s.report?.let { " · skipped ${it.skipped}" } ?: "") +
+                    (if (s.unresolved > 0) " · ${s.unresolved} unconfirmed" else "")
+            }
+            binding.storageInfo.text = "Backups use ${Fmt.bytes(bytes)} of app-private storage. They are not encrypted, " +
+                "are excluded from Android cloud backup and device transfer, and are deleted if you uninstall the app " +
+                "— export important backups to a location you choose. Full phone numbers and backup contents are never written to logs."
+            binding.about.text = "OpenCall Archive ${BuildConfig.VERSION_NAME}\nFree and open-source. No ads, analytics, accounts or network access."
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

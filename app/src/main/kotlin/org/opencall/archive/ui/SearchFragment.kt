@@ -1,0 +1,163 @@
+package org.opencall.archive.ui
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import androidx.core.util.Pair
+import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.datepicker.MaterialDatePicker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.opencall.archive.R
+import org.opencall.archive.core.BackupSnapshot
+import org.opencall.archive.core.CallTypes
+import org.opencall.archive.core.SearchCriteria
+import org.opencall.archive.core.SearchEngine
+import org.opencall.archive.data.BackupMeta
+import org.opencall.archive.databinding.FragmentSearchBinding
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+
+/** Offline search across archived snapshots. Never queries the live call log. */
+class SearchFragment : Fragment() {
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
+
+    private var snapshots: List<BackupSnapshot> = emptyList()
+    private var metas: List<BackupMeta> = emptyList()
+    private var selectedBackupId: String? = null
+    private var fromDay: LocalDate? = null
+    private var toDay: LocalDate? = null
+    private var searchJob: Job? = null
+    private val adapter = RecordAdapter { row ->
+        showRecordDetails(requireContext(), row.record, "Archived call (not necessarily in your current call history). Found in: ${row.note ?: row.badge}")
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.results.layoutManager = LinearLayoutManager(requireContext())
+        binding.results.adapter = adapter
+        binding.query.doAfterTextChanged { scheduleSearch() }
+        binding.minDuration.doAfterTextChanged { scheduleSearch() }
+        binding.maxDuration.doAfterTextChanged { scheduleSearch() }
+        binding.typeChips.setOnCheckedStateChangeListener { _, _ -> scheduleSearch(0) }
+        binding.dateRange.setOnClickListener { pickDates() }
+        binding.clearDates.setOnClickListener {
+            fromDay = null; toDay = null
+            updateDateLabel(); scheduleSearch(0)
+        }
+        binding.backupSelector.setOnItemClickListener { _, _, position, _ ->
+            selectedBackupId = if (position == 0) null else metas.getOrNull(position - 1)?.id
+            scheduleSearch(0)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                requireContext().app.repository.backups.collect { list ->
+                    metas = list
+                    if (selectedBackupId != null && list.none { it.id == selectedBackupId }) selectedBackupId = null
+                    val labels = listOf(getString(R.string.search_all_backups)) +
+                        list.map { "${it.label} (${Fmt.count(it.recordCount)})" }
+                    binding.backupSelector.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, labels))
+                    val idx = selectedBackupId?.let { id -> list.indexOfFirst { it.id == id } + 1 } ?: 0
+                    binding.backupSelector.setText(labels[idx], false)
+                    snapshots = requireContext().app.repository.loadAllSnapshots()
+                    scheduleSearch(0)
+                }
+            }
+        }
+    }
+
+    private fun pickDates() {
+        val picker = MaterialDatePicker.Builder.dateRangePicker()
+            .setTitleText("Date range")
+            .apply {
+                val f = fromDay; val t = toDay
+                if (f != null && t != null) setSelection(Pair(utcMillis(f), utcMillis(t)))
+            }
+            .build()
+        picker.addOnPositiveButtonClickListener { sel ->
+            // The picker reports UTC midnight of the chosen days.
+            fromDay = Instant.ofEpochMilli(sel.first).atZone(ZoneOffset.UTC).toLocalDate()
+            toDay = Instant.ofEpochMilli(sel.second).atZone(ZoneOffset.UTC).toLocalDate()
+            updateDateLabel(); scheduleSearch(0)
+        }
+        picker.show(childFragmentManager, "dates")
+    }
+
+    private fun utcMillis(d: LocalDate) = d.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+    private fun updateDateLabel() {
+        val f = fromDay; val t = toDay
+        binding.dateRange.text = if (f != null && t != null) {
+            val zone = ZoneId.systemDefault()
+            "${Fmt.day(f.atStartOfDay(zone).toInstant().toEpochMilli())} – ${Fmt.day(t.atStartOfDay(zone).toInstant().toEpochMilli())}"
+        } else getString(R.string.search_date_any)
+        binding.clearDates.isVisible = f != null
+    }
+
+    private fun criteria(): SearchCriteria {
+        val zone = ZoneId.systemDefault()
+        val types = buildSet {
+            if (binding.chipIncoming.isChecked) { add(CallTypes.INCOMING); add(CallTypes.ANSWERED_EXTERNALLY) }
+            if (binding.chipOutgoing.isChecked) add(CallTypes.OUTGOING)
+            if (binding.chipMissed.isChecked) add(CallTypes.MISSED)
+            if (binding.chipRejected.isChecked) add(CallTypes.REJECTED)
+            if (binding.chipBlocked.isChecked) add(CallTypes.BLOCKED)
+            if (binding.chipVoicemail.isChecked) add(CallTypes.VOICEMAIL)
+        }
+        return SearchCriteria(
+            text = binding.query.text?.toString().orEmpty(),
+            from = fromDay?.atStartOfDay(zone)?.toInstant()?.toEpochMilli(),
+            until = toDay?.plusDays(1)?.atStartOfDay(zone)?.toInstant()?.toEpochMilli(),
+            types = types,
+            minDurationSeconds = binding.minDuration.text?.toString()?.toLongOrNull(),
+            maxDurationSeconds = binding.maxDuration.text?.toString()?.toLongOrNull(),
+            backupId = selectedBackupId,
+        )
+    }
+
+    private fun scheduleSearch(delayMs: Long = 250) {
+        if (_binding == null) return
+        searchJob?.cancel()
+        val c = criteria()
+        val data = snapshots
+        searchJob = viewLifecycleOwner.lifecycleScope.launch {
+            if (delayMs > 0) delay(delayMs)
+            val hits = withContext(Dispatchers.Default) { SearchEngine.search(data, c) }
+            val labelOf = metas.associate { it.id to it.label }
+            val rows = hits.map { hit ->
+                val badge = getString(R.string.archived_badge) +
+                    if (hit.backupIds.size > 1) " · ${hit.backupIds.size} backups" else ""
+                RecordRow(hit.record, badge, hit.backupIds.joinToString { labelOf[it] ?: "backup" })
+            }
+            adapter.submitList(rows)
+            binding.resultCount.text = when {
+                metas.isEmpty() -> getString(R.string.search_no_backups)
+                else -> "${Fmt.count(rows.size)} archived calls found in ${if (c.backupId == null) "${metas.size} backups" else "the selected backup"}"
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

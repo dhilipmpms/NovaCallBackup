@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenCall Archive</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_backups">Backups</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="home_current_count">Current call history</string>
+    <string name="home_current_count_hint">Entries in this device\'s live call log</string>
+    <string name="home_backup_count">Saved backups</string>
+    <string name="home_latest_backup">Latest backup</string>
+    <string name="home_none">None yet</string>
+    <string name="home_unavailable">Permission needed</string>
+    <string name="home_no_provider">No call log on this device</string>
+    <string name="backup_now">Back up now</string>
+    <string name="restore_backup">Restore a backup</string>
+    <string name="search_history">Search historical calls</string>
+    <string name="import_backup">Import backup file</string>
+    <string name="home_privacy">Everything stays on this device. No account, no ads, no analytics, no internet access. Backups are stored in app-private storage and are not encrypted; exported files are plain JSON or CSV.</string>
+    <string name="grant_permission">Grant call log access</string>
+    <string name="permission_card_text">Call log access is needed to read your call history for backups and to add entries back during a restore. You can still browse and search existing backups without it.</string>
+    <string name="view">View</string>
+
+    <!-- Permissions -->
+    <string name="perm_rationale_title">Call log access</string>
+    <string name="perm_rationale_text">OpenCall Archive asks for the \"Call logs\" permission to:\n\n• read your call history when you create a backup or compare\n• add backed-up calls to your call history when you choose to restore\n\nNothing leaves your device. The app never makes calls, sends messages or deletes call history.</string>
+    <string name="perm_continue">Continue</string>
+    <string name="perm_blocked_title">Permission not available</string>
+    <string name="perm_blocked_text">Android did not grant call log access. Either the permission was denied permanently, or Android restricted it because of how the app was installed.\n\nOpen App info → Permissions → Call logs and choose Allow. If the option is greyed out, first open the ⋮ menu in App info and choose \"Allow restricted settings\".</string>
+    <string name="open_app_info">Open App info</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="close">Close</string>
+    <string name="delete">Delete</string>
+
+    <!-- Search -->
+    <string name="search_hint">Name or part of a number</string>
+    <string name="search_all_backups">All backups</string>
+    <string name="search_backup">Backup</string>
+    <string name="search_date_any">Any date</string>
+    <string name="search_clear_dates">Clear dates</string>
+    <string name="search_min_duration">Min duration (s)</string>
+    <string name="search_max_duration">Max duration (s)</string>
+    <string name="type_incoming">Incoming</string>
+    <string name="type_outgoing">Outgoing</string>
+    <string name="type_missed">Missed</string>
+    <string name="type_rejected">Rejected</string>
+    <string name="type_blocked">Blocked</string>
+    <string name="type_voicemail">Voicemail</string>
+    <string name="type_answered_externally">Answered elsewhere</string>
+    <string name="type_unknown">Unknown type</string>
+    <string name="search_no_backups">No backups yet. Create or import a backup to search archived calls.</string>
+    <string name="archived_badge">ARCHIVED</string>
+    <string name="live_badge">LIVE</string>
+    <string name="private_number">Private / unknown number</string>
+
+    <!-- Backups -->
+    <string name="backups_empty">No backups saved. Use \"Back up now\" on Home or import a backup file.</string>
+    <string name="compare_two">Compare two backups</string>
+    <string name="restore">Restore</string>
+    <string name="compare">Compare</string>
+    <string name="export_json">Export JSON</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="filter_records">Filter these records</string>
+    <string name="delete_backup_title">Delete this backup?</string>
+    <string name="delete_backup_text">The archived copy \"%1$s\" (%2$d records) will be permanently removed from this app. Your device\'s call history is not affected. Exported copies are not affected.</string>
+    <string name="compare_with_current">Current call history</string>
+    <string name="compare_with_title">Compare with…</string>
+    <string name="choose_backup">Choose a backup</string>
+    <string name="restore_from_file">From a backup file…</string>
+
+    <!-- Restore -->
+    <string name="restore_title">Restore call history</string>
+    <string name="restore_preview_heading">Restore preview</string>
+    <string name="restore_requirements_heading">Permissions and requirements</string>
+    <string name="restore_fields_heading">Fields</string>
+    <string name="restore_policy_heading">How to handle possible duplicates</string>
+    <string name="policy_skip_likely">Skip likely duplicates (recommended)</string>
+    <string name="policy_skip_likely_desc">Adds only calls that have no identical or similar entry in your call history. Safest; nothing is duplicated, but a genuinely different call that looks similar would be skipped.</string>
+    <string name="policy_skip_confirmed">Skip exact duplicates only</string>
+    <string name="policy_skip_confirmed_desc">Also adds calls that are only similar to an existing entry (for example the number is formatted differently or the time differs by under a second). May create near-duplicate entries.</string>
+    <string name="policy_restore_all">Restore everything eligible</string>
+    <string name="policy_restore_all_desc">Adds every valid call, even ones already in your call history. This WILL create duplicate entries for calls you already have. Calls this app restored earlier are still never added twice.</string>
+    <string name="option_keep_account">Restore SIM / phone account info</string>
+    <string name="option_keep_account_desc">Keeps which SIM or calling account each call used. Turn off if the backup came from a different phone and restored calls do not appear in your phone app.</string>
+    <string name="option_mark_read">Mark restored calls as read</string>
+    <string name="option_mark_read_desc">Prevents old missed calls from showing up as new missed-call notifications.</string>
+    <string name="restore_start">Restore to call history</string>
+    <string name="restore_confirm_title">Modify call history?</string>
+    <string name="restore_confirm_text">%1$d entries will be added to this device\'s call history. Existing entries are never changed or deleted, and the backup itself is not modified.\n\nAdded entries can only be removed from your phone app afterwards.</string>
+    <string name="restore_confirm_button">Add %1$d entries</string>
+    <string name="restore_in_progress">Restoring…</string>
+    <string name="restore_cancel">Stop restore</string>
+    <string name="restore_retry">Retry remaining</string>
+    <string name="restore_done">Done</string>
+    <string name="restore_another_running">Another restore is in progress.</string>
+    <string name="restore_nothing">Nothing to restore with the selected option.</string>
+</resources>

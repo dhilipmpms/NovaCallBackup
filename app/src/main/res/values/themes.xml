@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OpenCall" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand</item>
+        <item name="colorSecondary">@color/brand</item>
+    </style>
+
+    <style name="Widget.OpenCall.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="contentPadding">16dp</item>
+    </style>
+
+    <style name="TextAppearance.OpenCall.Stat" parent="TextAppearance.Material3.HeadlineMedium" />
+</resources>
