@@ -155,8 +155,8 @@ object BackupJson {
         } catch (e: StackOverflowError) {
             return fatal("File is nested too deeply to be a backup.")
         }
-        if (root !is JsonObject) return fatal("File is not an OpenCall Archive backup (expected a JSON object).")
-        if (root.string("format") != FORMAT) return fatal("File is not an OpenCall Archive backup (unknown format).")
+        if (root !is JsonObject) return fatal("File is not a Call Backup & Restore backup (expected a JSON object).")
+        if (root.string("format") != FORMAT) return fatal("File is not a Call Backup & Restore backup (unknown format).")
         val version = root.long("formatVersion")?.toInt()
             ?: return fatal("Backup is missing its format version.")
         if (version < 1) return fatal("Backup has an invalid format version ($version).", version)

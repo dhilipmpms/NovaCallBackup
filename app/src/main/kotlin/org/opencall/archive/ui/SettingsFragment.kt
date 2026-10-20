@@ -110,7 +110,7 @@ class SettingsFragment : Fragment() {
             binding.storageInfo.text = "Backups use ${Fmt.bytes(bytes)} of app-private storage. They are not encrypted, " +
                 "are excluded from Android cloud backup and device transfer, and are deleted if you uninstall the app " +
                 "— export important backups to a location you choose. Full phone numbers and backup contents are never written to logs."
-            binding.about.text = "OpenCall Archive ${BuildConfig.VERSION_NAME}\nFree and open-source. No ads, analytics, accounts or network access."
+            binding.about.text = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}\nFree and open-source. No ads, analytics, accounts or network access."
         }
     }
 

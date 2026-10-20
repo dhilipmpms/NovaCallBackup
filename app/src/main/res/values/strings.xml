@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OpenCall Archive</string>
+    <string name="app_name">Call Backup &amp; Restore</string>
     <string name="nav_home">Home</string>
     <string name="nav_search">Search</string>
     <string name="nav_backups">Backups</string>
@@ -25,7 +25,7 @@
 
     <!-- Permissions -->
     <string name="perm_rationale_title">Call log access</string>
-    <string name="perm_rationale_text">OpenCall Archive asks for the \"Call logs\" permission to:\n\n• read your call history when you create a backup or compare\n• add backed-up calls to your call history when you choose to restore\n\nNothing leaves your device. The app never makes calls, sends messages or deletes call history.</string>
+    <string name="perm_rationale_text">Call Backup &amp; Restore asks for the \"Call logs\" permission to:\n\n• read your call history when you create a backup or compare\n• add backed-up calls to your call history when you choose to restore\n\nNothing leaves your device. The app never makes calls, sends messages or deletes call history.</string>
     <string name="perm_continue">Continue</string>
     <string name="perm_blocked_title">Permission not available</string>
     <string name="perm_blocked_text">Android did not grant call log access. Either the permission was denied permanently, or Android restricted it because of how the app was installed.\n\nOpen App info → Permissions → Call logs and choose Allow. If the option is greyed out, first open the ⋮ menu in App info and choose \"Allow restricted settings\".</string>

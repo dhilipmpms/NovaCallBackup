@@ -1,4 +1,4 @@
-# OpenCall Archive
+# Call Backup & Restore
 
 Free, open-source, offline Android app to **back up, search, import, export, compare and
 restore** call history. No account, ads, analytics, tracking or network access — the app
