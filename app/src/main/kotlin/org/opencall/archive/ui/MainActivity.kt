@@ -9,10 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
-import org.opencall.archive.R
+import com.nova.callbackup.R
 import org.opencall.archive.data.ImportOutcome
 import org.opencall.archive.data.OpenedDocument
-import org.opencall.archive.databinding.ActivityMainBinding
+import com.nova.callbackup.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

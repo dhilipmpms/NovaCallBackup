@@ -10,10 +10,10 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.opencall.archive.BuildConfig
-import org.opencall.archive.R
+import com.nova.callbackup.BuildConfig
+import com.nova.callbackup.R
 import org.opencall.archive.data.CallLogAccess
-import org.opencall.archive.databinding.FragmentSettingsBinding
+import com.nova.callbackup.databinding.FragmentSettingsBinding
 import org.opencall.archive.work.AutoBackupScheduler
 import org.opencall.archive.work.AutoBackupSettings
 

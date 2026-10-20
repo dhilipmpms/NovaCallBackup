@@ -16,11 +16,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
-import org.opencall.archive.R
+import com.nova.callbackup.R
 import org.opencall.archive.core.BackupOrigin
 import org.opencall.archive.data.BackupMeta
-import org.opencall.archive.databinding.FragmentBackupsBinding
-import org.opencall.archive.databinding.ItemBackupBinding
+import com.nova.callbackup.databinding.FragmentBackupsBinding
+import com.nova.callbackup.databinding.ItemBackupBinding
 
 class BackupsFragment : Fragment() {
     private var _binding: FragmentBackupsBinding? = null

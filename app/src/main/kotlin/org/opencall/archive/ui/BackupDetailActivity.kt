@@ -12,13 +12,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.opencall.archive.R
+import com.nova.callbackup.R
 import org.opencall.archive.core.BackupJson
 import org.opencall.archive.core.BackupSnapshot
 import org.opencall.archive.core.SearchCriteria
 import org.opencall.archive.core.SearchEngine
 import org.opencall.archive.data.BackupMeta
-import org.opencall.archive.databinding.ActivityBackupDetailBinding
+import com.nova.callbackup.databinding.ActivityBackupDetailBinding
 import java.io.IOException
 
 class BackupDetailActivity : AppCompatActivity() {

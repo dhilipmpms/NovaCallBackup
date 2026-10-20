@@ -21,12 +21,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.opencall.archive.OpenCallApp
-import org.opencall.archive.R
+import com.nova.callbackup.R
 import org.opencall.archive.core.CallRecord
 import org.opencall.archive.core.CallTypes
 import org.opencall.archive.core.PresentationNames
 import org.opencall.archive.data.CallLogAccess
-import org.opencall.archive.databinding.ItemRecordBinding
+import com.nova.callbackup.databinding.ItemRecordBinding
 import java.text.DateFormat
 import java.text.NumberFormat
 import java.util.Date

@@ -132,15 +132,3 @@ export JAVA_HOME=/path/to/jdk-21
   interrupted and partial restores, and remove exactly those rows afterwards. They run only on
   emulators unless `-Pandroid.testInstrumentationRunnerArguments.allowRealDevice=true` is passed.
 
-### Scenarios that still need real-device verification
-
-- OEM call-log providers (Samsung, Xiaomi, etc.) with extra or renamed columns, or with automatic
-  trimming of old entries. The final re-check reports such trimming but cannot prevent it.
-- Restoring SIM/phone-account IDs from another phone: the stock dialer may show or hide calls
-  whose account doesn't exist on the new device (the option to omit account info exists for this).
-- Hard-restricted permission handling for installs from app stores or browsers on Android 13–16.
-- Work profiles and secondary users.
-- Automatic backup timing under Doze / battery optimisation on real hardware.
-- Very large real call logs: a 20,508-row Motorola call log was read and backed up completely
-  (cursor 20,508 = saved 20,508); search and restore performance at that size is verified only by
-  unit tests with 25,000 synthetic records.

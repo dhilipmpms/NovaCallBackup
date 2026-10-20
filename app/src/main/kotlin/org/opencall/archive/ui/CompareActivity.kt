@@ -9,13 +9,13 @@ import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.opencall.archive.R
+import com.nova.callbackup.R
 import org.opencall.archive.core.CallRecord
 import org.opencall.archive.core.CompareEngine
 import org.opencall.archive.core.CompareResult
 import org.opencall.archive.core.MatchedPair
 import org.opencall.archive.data.CallLogAccess
-import org.opencall.archive.databinding.ActivityCompareBinding
+import com.nova.callbackup.databinding.ActivityCompareBinding
 
 /** Read-only comparison. Nothing is restored or deleted from here. */
 class CompareActivity : AppCompatActivity() {

@@ -24,7 +24,7 @@
     </queries>
 
     <application
-        android:name=".OpenCallApp"
+        android:name="org.opencall.archive.OpenCallApp"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
@@ -36,7 +36,7 @@
         tools:targetApi="36">
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name="org.opencall.archive.ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,13 +44,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.BackupDetailActivity"
+            android:name="org.opencall.archive.ui.BackupDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.RestoreActivity"
+            android:name="org.opencall.archive.ui.RestoreActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.CompareActivity"
+            android:name="org.opencall.archive.ui.CompareActivity"
             android:exported="false" />
     </application>
 </manifest>

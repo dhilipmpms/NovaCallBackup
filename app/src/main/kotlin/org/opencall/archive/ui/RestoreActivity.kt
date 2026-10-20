@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
-import org.opencall.archive.R
+import com.nova.callbackup.R
 import org.opencall.archive.core.BackupSnapshot
 import org.opencall.archive.core.DecodeResult
 import org.opencall.archive.core.restore.ColumnDisposition
@@ -25,7 +25,7 @@ import org.opencall.archive.core.restore.RestoreReport
 import org.opencall.archive.core.restore.SessionStatus
 import org.opencall.archive.data.CallLogAccess
 import org.opencall.archive.data.RestoreState
-import org.opencall.archive.databinding.ActivityRestoreBinding
+import com.nova.callbackup.databinding.ActivityRestoreBinding
 
 /**
  * Restore workflow: select → validate → preview → choose policy → confirm → restore →

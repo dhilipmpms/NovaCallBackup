@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "org.opencall.archive"
+    namespace = "com.nova.callbackup"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "org.opencall.archive"
+        applicationId = "com.nova.callbackup"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
