@@ -151,7 +151,13 @@ class HomeFragment : Fragment() {
             binding.backupNow.isEnabled = true
             showStatus(
                 when (result) {
-                    is BackupResult.Saved -> "Backup saved and verified: ${Fmt.count(result.meta.recordCount)} records (\"${result.meta.label}\")."
+                    is BackupResult.Saved -> buildString {
+                        append("Backup saved and verified: ${Fmt.count(result.meta.recordCount)} records (\"${result.meta.label}\").")
+                        append("\nThe call log returned ${Fmt.count(result.stats.cursorCount)} rows")
+                        if (result.stats.skippedTotal == 0) append("; all were saved.")
+                        else append("; ${Fmt.count(result.stats.skippedTotal)} could not be read: " +
+                            result.stats.skipped.entries.joinToString { "${it.key} (${it.value})" } + ".")
+                    }
                     is BackupResult.Unchanged -> "No changes since \"${result.existing.label}\"."
                     BackupResult.EmptyCallLog -> "Your call history is empty, so there is nothing to back up. No backup was created."
                     BackupResult.PermissionMissing -> "Backup failed: call log permission is not granted."

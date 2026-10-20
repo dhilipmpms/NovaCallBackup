@@ -149,8 +149,14 @@ fun showRecordDetails(ctx: Context, record: CallRecord, sourceLabel: String) {
         .show()
 }
 
-data class RecordRow(val record: CallRecord, val badge: String, val note: String? = null) {
-    val key: String get() = record.fingerprint + "|" + badge
+data class RecordRow(
+    val record: CallRecord,
+    val badge: String,
+    val note: String? = null,
+    /** Distinguishes identical calls that occur more than once in a list. */
+    val position: Int = 0,
+) {
+    val key: String get() = record.fingerprint + "|" + badge + "|" + position
 }
 
 class RecordAdapter(private val onClick: (RecordRow) -> Unit) :

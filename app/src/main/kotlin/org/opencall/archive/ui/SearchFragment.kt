@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.util.Pair
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
@@ -14,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,9 +24,11 @@ import kotlinx.coroutines.withContext
 import org.opencall.archive.R
 import org.opencall.archive.core.BackupSnapshot
 import org.opencall.archive.core.CallTypes
+import org.opencall.archive.core.MatchSource
 import org.opencall.archive.core.SearchCriteria
 import org.opencall.archive.core.SearchEngine
 import org.opencall.archive.data.BackupMeta
+import org.opencall.archive.data.ContactNumbers
 import org.opencall.archive.databinding.FragmentSearchBinding
 import java.time.Instant
 import java.time.LocalDate
@@ -42,6 +46,10 @@ class SearchFragment : Fragment() {
     private var fromDay: LocalDate? = null
     private var toDay: LocalDate? = null
     private var searchJob: Job? = null
+    private val contactsPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) binding.useContacts.isChecked = false
+        scheduleSearch(0)
+    }
     private val adapter = RecordAdapter { row ->
         showRecordDetails(requireContext(), row.record, "Archived call (not necessarily in your current call history). Found in: ${row.note ?: row.badge}")
     }
@@ -62,6 +70,17 @@ class SearchFragment : Fragment() {
         binding.clearDates.setOnClickListener {
             fromDay = null; toDay = null
             updateDateLabel(); scheduleSearch(0)
+        }
+        binding.useContacts.setOnCheckedChangeListener { _, on ->
+            if (on && !ContactNumbers.hasPermission(requireContext())) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.search_use_contacts)
+                    .setMessage(R.string.contacts_rationale)
+                    .setPositiveButton(R.string.perm_continue) { _, _ -> contactsPermission.launch(ContactNumbers.PERMISSION) }
+                    .setNegativeButton(R.string.cancel) { _, _ -> binding.useContacts.isChecked = false }
+                    .setOnCancelListener { binding.useContacts.isChecked = false }
+                    .show()
+            } else scheduleSearch(0)
         }
         binding.backupSelector.setOnItemClickListener { _, _, position, _ ->
             selectedBackupId = if (position == 0) null else metas.getOrNull(position - 1)?.id
@@ -137,21 +156,42 @@ class SearchFragment : Fragment() {
     private fun scheduleSearch(delayMs: Long = 250) {
         if (_binding == null) return
         searchJob?.cancel()
-        val c = criteria()
+        val base = criteria()
         val data = snapshots
+        val useContacts = binding.useContacts.isChecked
+        val ctx = requireContext().applicationContext
         searchJob = viewLifecycleOwner.lifecycleScope.launch {
             if (delayMs > 0) delay(delayMs)
-            val hits = withContext(Dispatchers.Default) { SearchEngine.search(data, c) }
+            val result = withContext(Dispatchers.Default) {
+                val contactNumbers = if (useContacts && base.text.isNotBlank()) {
+                    withContext(Dispatchers.IO) { ContactNumbers.numbersForName(ctx, base.text) }
+                } else emptySet()
+                SearchEngine.search(data, base.copy(contactNumbers = contactNumbers))
+            }
             val labelOf = metas.associate { it.id to it.label }
-            val rows = hits.map { hit ->
+            val rows = result.hits.mapIndexed { i, hit ->
                 val badge = getString(R.string.archived_badge) +
                     if (hit.backupIds.size > 1) " · ${hit.backupIds.size} backups" else ""
-                RecordRow(hit.record, badge, hit.backupIds.joinToString { labelOf[it] ?: "backup" })
+                val via = when (hit.matchedBy) {
+                    MatchSource.NAME_VIA_NUMBER -> "Matched by number: this number has that name on other calls\n"
+                    MatchSource.CONTACT_NUMBER -> "Matched by number of a current contact\n"
+                    else -> ""
+                }
+                RecordRow(hit.record, badge, via + hit.backupIds.joinToString { labelOf[it] ?: "backup" }, i)
             }
             adapter.submitList(rows)
             binding.resultCount.text = when {
                 metas.isEmpty() -> getString(R.string.search_no_backups)
-                else -> "${Fmt.count(rows.size)} archived calls found in ${if (c.backupId == null) "${metas.size} backups" else "the selected backup"}"
+                else -> buildString {
+                    append(Fmt.count(result.total)).append(" matching calls")
+                    append(if (base.backupId == null) " across ${metas.size} backups" else " in the selected backup")
+                    append(" (").append(Fmt.count(result.recordsSearched)).append(" records searched)")
+                    val viaNumber = result.count(MatchSource.NAME_VIA_NUMBER) + result.count(MatchSource.CONTACT_NUMBER)
+                    if (viaNumber > 0) {
+                        append("\n").append(Fmt.count(result.count(MatchSource.NAME))).append(" by saved name, ")
+                        append(Fmt.count(viaNumber)).append(" by ").append(result.linkedNumbers).append(" linked numbers")
+                    }
+                }
             }
         }
     }

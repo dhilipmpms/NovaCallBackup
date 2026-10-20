@@ -81,6 +81,26 @@ many records carry it and the reason it isn't written.
 - The phone number alone, a row ID, or a contact name are never used as identity. Nothing is
   ever deleted automatically.
 
+## Android's per-SIM call-log limit
+
+Each time Telecom logs a call, `CallLog.addCall` deletes the oldest rows of **that SIM / phone
+account** beyond a per-SIM cap: 500 in AOSP, configurable by the manufacturer via
+`config_maximumCallLogEntriesPerSim` (one Motorola device measured at 3,000). Rows with other or no
+account IDs, such as calls migrated from an old phone, are not trimmed. As a result the provider's total can stay
+constant while new calls arrive, and old calls on the current SIM disappear from Android itself.
+Only backups made before that deletion still contain them. Back up regularly (or enable automatic
+backup). **Settings → Call log diagnostics** shows read counts and rows per SIM account (counts only).
+
+## Historical search
+
+Search runs over every record of the selected backups, with no pagination or result cap, and the
+count shown is the full number of matches. A name query matches a call's own cached name, and also
+every call to a number that carried that name on any searched call. With the optional "current
+contacts" switch (READ_CONTACTS, requested on first use), it also matches all numbers of matching
+contacts. Numbers match across formats (`+91 90870 54184`, `9087054184`, `09087054184`). Linking
+is by number only, so people who merely share a name are never merged. Identical rows inside one
+backup are all counted. A call present in several backups is shown once.
+
 ## Privacy and security
 
 - Backups live in `files/backups` (app-private, mode 600) and are excluded from cloud backup and
@@ -121,4 +141,6 @@ export JAVA_HOME=/path/to/jdk-21
 - Hard-restricted permission handling for installs from app stores or browsers on Android 13–16.
 - Work profiles and secondary users.
 - Automatic backup timing under Doze / battery optimisation on real hardware.
-- Very large real call logs (tens of thousands of entries).
+- Very large real call logs: a 20,508-row Motorola call log was read and backed up completely
+  (cursor 20,508 = saved 20,508); search and restore performance at that size is verified only by
+  unit tests with 25,000 synthetic records.

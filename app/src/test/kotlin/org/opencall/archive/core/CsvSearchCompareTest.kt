@@ -64,50 +64,50 @@ class SearchEngineTest {
     private val all = listOf(newer, older)
 
     @Test fun `search by name is case insensitive and deduplicated across backups`() {
-        val hits = SearchEngine.search(all, SearchCriteria(text = "arun"))
+        val hits = SearchEngine.search(all, SearchCriteria(text = "arun")).hits
         assertEquals(2, hits.size)
         val repeated = hits.first { it.record.date == BASE }
         assertEquals(listOf("new", "old"), repeated.backupIds)
     }
 
     @Test fun `partial number search ignores formatting`() {
-        assertEquals(2, SearchEngine.search(all, SearchCriteria(text = "98765")).size)
-        assertEquals(2, SearchEngine.search(all, SearchCriteria(text = "765 432")).size)
-        assertEquals(1, SearchEngine.search(all, SearchCriteria(text = "555-01")).size)
-        assertEquals(0, SearchEngine.search(all, SearchCriteria(text = "424242")).size)
+        assertEquals(2, SearchEngine.search(all, SearchCriteria(text = "98765")).total)
+        assertEquals(2, SearchEngine.search(all, SearchCriteria(text = "765 432")).total)
+        assertEquals(1, SearchEngine.search(all, SearchCriteria(text = "555-01")).total)
+        assertEquals(0, SearchEngine.search(all, SearchCriteria(text = "424242")).total)
     }
 
     @Test fun `combined name date range and type filter`() {
         val hits = SearchEngine.search(
             all,
             SearchCriteria(text = "Arun", from = BASE - day, until = BASE + day, types = setOf(CallTypes.OUTGOING)),
-        )
+        ).hits
         assertEquals(1, hits.size)
         assertEquals(CallTypes.OUTGOING, hits[0].record.type)
     }
 
     @Test fun `date range bounds are inclusive start exclusive end`() {
-        assertEquals(1, SearchEngine.search(all, SearchCriteria(from = BASE + day, until = BASE + day + 1)).size)
-        assertEquals(0, SearchEngine.search(all, SearchCriteria(from = BASE + day + 1, until = BASE + 2 * day)).size)
+        assertEquals(1, SearchEngine.search(all, SearchCriteria(from = BASE + day, until = BASE + day + 1)).total)
+        assertEquals(0, SearchEngine.search(all, SearchCriteria(from = BASE + day + 1, until = BASE + 2 * day)).total)
     }
 
     @Test fun `type and duration filters`() {
-        assertEquals(1, SearchEngine.search(all, SearchCriteria(types = setOf(CallTypes.MISSED))).size)
-        assertEquals(2, SearchEngine.search(all, SearchCriteria(types = setOf(CallTypes.INCOMING))).size)
-        assertEquals(1, SearchEngine.search(all, SearchCriteria(minDurationSeconds = 300)).size)
-        assertEquals(1, SearchEngine.search(all, SearchCriteria(maxDurationSeconds = 0)).size)
+        assertEquals(1, SearchEngine.search(all, SearchCriteria(types = setOf(CallTypes.MISSED))).total)
+        assertEquals(2, SearchEngine.search(all, SearchCriteria(types = setOf(CallTypes.INCOMING))).total)
+        assertEquals(1, SearchEngine.search(all, SearchCriteria(minDurationSeconds = 300)).total)
+        assertEquals(1, SearchEngine.search(all, SearchCriteria(maxDurationSeconds = 0)).total)
     }
 
     @Test fun `restricting to one backup`() {
-        val hits = SearchEngine.search(all, SearchCriteria(backupId = "old"))
+        val hits = SearchEngine.search(all, SearchCriteria(backupId = "old")).hits
         assertEquals(3, hits.size)
         assertTrue(hits.all { it.backupIds == listOf("old") })
     }
 
     @Test fun `results are newest first and empty archives give no results`() {
-        val hits = SearchEngine.search(all, SearchCriteria())
+        val hits = SearchEngine.search(all, SearchCriteria()).hits
         assertEquals(hits.sortedByDescending { it.record.date }, hits)
-        assertEquals(0, SearchEngine.search(emptyList(), SearchCriteria(text = "x")).size)
+        assertEquals(0, SearchEngine.search(emptyList(), SearchCriteria(text = "x")).total)
     }
 }
 

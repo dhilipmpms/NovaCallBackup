@@ -12,6 +12,7 @@ import kotlinx.serialization.json.put
 import org.opencall.archive.core.BackupJson
 import org.opencall.archive.core.BackupOrigin
 import org.opencall.archive.core.BackupSnapshot
+import org.opencall.archive.core.ReadStats
 import java.io.File
 import java.io.IOException
 
@@ -26,6 +27,10 @@ data class BackupMeta(
     val sourceSdk: Int?,
     val importedFrom: String?,
     val sizeBytes: Long,
+    /** Rows the provider returned when this backup was made (null for imports / older backups). */
+    val providerRowCount: Int? = null,
+    /** Provider rows that could not be read, by reason. */
+    val skippedRows: Map<String, Int> = emptyMap(),
 )
 
 class StorageException(message: String, cause: Throwable? = null) : IOException(message, cause)
@@ -76,7 +81,7 @@ class BackupStore(private val dir: File) {
     }
 
     @Synchronized
-    fun save(snapshot: BackupSnapshot, importedFrom: String? = null): BackupMeta {
+    fun save(snapshot: BackupSnapshot, importedFrom: String? = null, readStats: ReadStats? = null): BackupMeta {
         if (!dir.exists() && !dir.mkdirs()) throw StorageException("Could not create the backup folder.")
         var id = snapshot.id
         if (dataFile(id).exists()) id = java.util.UUID.randomUUID().toString()
@@ -102,6 +107,8 @@ class BackupStore(private val dir: File) {
                 sourceSdk = toSave.sourceSdk,
                 importedFrom = importedFrom,
                 sizeBytes = tmp.length(),
+                providerRowCount = readStats?.cursorCount,
+                skippedRows = readStats?.skipped.orEmpty(),
             )
             if (!tmp.renameTo(dataFile(id))) throw StorageException("Could not finalize the backup file.")
             writeMeta(meta)
@@ -137,6 +144,10 @@ class BackupStore(private val dir: File) {
             m.sourceSdk?.let { put("sourceSdk", it) }
             m.importedFrom?.let { put("importedFrom", it) }
             put("sizeBytes", m.sizeBytes)
+            m.providerRowCount?.let { put("providerRowCount", it) }
+            if (m.skippedRows.isNotEmpty()) {
+                put("skippedRows", JsonObject(m.skippedRows.mapValues { (_, n) -> JsonPrimitive(n) }))
+            }
         }
         val tmp = File(dir, "${m.id}.meta.tmp")
         tmp.writeText(obj.toString(), Charsets.UTF_8)
@@ -157,6 +168,9 @@ class BackupStore(private val dir: File) {
             sourceSdk = o.i("sourceSdk"),
             importedFrom = o.s("importedFrom"),
             sizeBytes = o.l("sizeBytes") ?: 0L,
+            providerRowCount = o.i("providerRowCount"),
+            skippedRows = (o["skippedRows"] as? JsonObject)
+                ?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.intOrNull?.let { k to it } }?.toMap().orEmpty(),
         )
     } catch (e: Exception) {
         null

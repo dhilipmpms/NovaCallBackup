@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <!-- Insert backed-up entries into the call log during restore. -->
     <uses-permission android:name="android.permission.WRITE_CALL_LOG" />
+    <!-- Optional: find archived calls by a current contact's numbers (requested only when enabled in Search). -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- WorkManager declares this for network constraints, which this app never uses. -->
     <uses-permission

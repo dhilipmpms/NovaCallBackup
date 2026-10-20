@@ -126,6 +126,52 @@ data class CallRecord(
     }
 }
 
+/** Per-stage counts of one full read of the call-log provider. Contains no call data. */
+data class ReadStats(
+    /** Cursor.getCount() reported by the provider. */
+    val cursorCount: Int,
+    /** Rows actually visited with moveToNext(). */
+    val iterated: Int,
+    /** Rows converted into records. */
+    val converted: Int,
+    /** Rows that could not be converted, by reason. */
+    val skipped: Map<String, Int>,
+) {
+    val skippedTotal: Int get() = skipped.values.sum()
+}
+
+data class ReadResult(val records: List<CallRecord>, val stats: ReadStats)
+
+object RecordReader {
+    /** Why a provider row cannot become a [CallRecord], or null if it can. */
+    fun rejectionReason(columns: Map<String, FieldValue>): String? {
+        val date = columns[Columns.DATE]
+        val type = columns[Columns.TYPE]
+        return when {
+            date == null -> "missing date"
+            date !is FieldValue.Integer -> "date is not numeric"
+            type == null -> "missing call type"
+            type !is FieldValue.Integer -> "call type is not numeric"
+            else -> null
+        }
+    }
+
+    /** Converts every row, counting (never silently dropping) rows that cannot be converted. */
+    fun collect(cursorCount: Int, rows: Sequence<Map<String, FieldValue>>): ReadResult {
+        val records = ArrayList<CallRecord>(cursorCount.coerceAtLeast(0))
+        val skipped = LinkedHashMap<String, Int>()
+        var iterated = 0
+        for (row in rows) {
+            iterated++
+            val reason = rejectionReason(row)
+            val record = if (reason == null) CallRecord.fromColumns(row) else null
+            if (record != null) records += record
+            else skipped.merge(reason ?: "unreadable row", 1, Int::plus)
+        }
+        return ReadResult(records, ReadStats(cursorCount, iterated, records.size, skipped))
+    }
+}
+
 /** Sorts records into the canonical order used for storage and checksums. */
 fun List<CallRecord>.canonicalOrder(): List<CallRecord> =
     sortedWith(compareByDescending<CallRecord> { it.date }.thenBy { it.fingerprint })

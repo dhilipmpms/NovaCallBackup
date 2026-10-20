@@ -100,7 +100,7 @@ class BackupDetailActivity : AppCompatActivity() {
         val q = binding.filter.text?.toString().orEmpty()
         val rows = s.records.asSequence()
             .filter { SearchEngine.matches(it, SearchCriteria(text = q)) }
-            .map { RecordRow(it, getString(R.string.archived_badge)) }
+            .mapIndexed { i, r -> RecordRow(r, getString(R.string.archived_badge), position = i) }
             .toList()
         adapter.submitList(rows)
         binding.count.text = "${Fmt.count(rows.size)} of ${Fmt.count(s.records.size)} archived records"

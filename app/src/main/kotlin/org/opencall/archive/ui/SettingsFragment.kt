@@ -38,6 +38,7 @@ class SettingsFragment : Fragment() {
         binding.grantButton.setOnClickListener { permissions.request() }
         binding.appInfoButton.setOnClickListener { CallLogPermissionRequester.openAppInfo(requireContext()) }
 
+        binding.diagnosticsButton.setOnClickListener { runDiagnostics() }
         binding.autoEnabled.isChecked = settings.enabled
         binding.autoCharging.isChecked = settings.requireCharging
         binding.autoSkipUnchanged.isChecked = settings.skipUnchanged
@@ -110,6 +111,49 @@ class SettingsFragment : Fragment() {
                 "are excluded from Android cloud backup and device transfer, and are deleted if you uninstall the app " +
                 "— export important backups to a location you choose. Full phone numbers and backup contents are never written to logs."
             binding.about.text = "OpenCall Archive ${BuildConfig.VERSION_NAME}\nFree and open-source. No ads, analytics, accounts or network access."
+        }
+    }
+
+    private fun runDiagnostics() {
+        val ctx = requireContext()
+        if (!CallLogAccess.hasRead(ctx)) {
+            binding.diagnosticsText.text = "Call log permission is not granted, so the provider cannot be measured."
+            return
+        }
+        binding.diagnosticsButton.isEnabled = false
+        binding.diagnosticsText.text = "Reading the call log…"
+        viewLifecycleOwner.lifecycleScope.launch {
+            val text = try {
+                val d = ctx.app.repository.diagnostics()
+                buildString {
+                    append("Provider rows (cursor count): ").append(Fmt.count(d.stats.cursorCount)).append('\n')
+                    append("Rows iterated: ").append(Fmt.count(d.stats.iterated)).append('\n')
+                    append("Rows converted to records: ").append(Fmt.count(d.stats.converted)).append('\n')
+                    append("Rows that could not be read: ").append(Fmt.count(d.stats.skippedTotal))
+                    d.stats.skipped.forEach { (reason, n) -> append("\n   • ").append(reason).append(": ").append(Fmt.count(n)) }
+                    append("\nDistinct calls (exact duplicates merged, for information only): ").append(Fmt.count(d.distinctCalls))
+                    d.oldestDate?.let { append("\nOldest call in provider: ").append(Fmt.date(it)) }
+                    append("\n\nRows per SIM / phone account:")
+                    d.accounts.forEachIndexed { i, a ->
+                        append("\n   • ").append(if (a.hasAccount) "Account ${i + 1}" else "No account recorded")
+                            .append(": ").append(Fmt.count(a.rows))
+                    }
+                    append("\n\nLatest backup: ")
+                    if (d.latestBackupRecords == null) append("none") else {
+                        append(Fmt.count(d.latestBackupRecords)).append(" records")
+                        d.latestBackupAt?.let { append(", made ").append(Fmt.date(it)) }
+                        d.latestBackupProviderRows?.let { append(" (provider had ").append(Fmt.count(it)).append(" rows then)") }
+                    }
+                    append("\n\nNote: when a new call is logged, Android deletes the oldest calls of that SIM account " +
+                        "beyond a per-SIM limit (500 by default; some manufacturers change it). If the total stays the same " +
+                        "after a new call, older entries are being removed by the system, not by this app.")
+                }
+            } catch (e: SecurityException) {
+                "Android denied access to the call log."
+            }
+            if (_binding == null) return@launch
+            binding.diagnosticsText.text = text
+            binding.diagnosticsButton.isEnabled = true
         }
     }
 

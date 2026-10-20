@@ -52,6 +52,8 @@
     <string name="type_answered_externally">Answered elsewhere</string>
     <string name="type_unknown">Unknown type</string>
     <string name="search_no_backups">No backups yet. Create or import a backup to search archived calls.</string>
+    <string name="search_use_contacts">Also match all numbers of current contacts</string>
+    <string name="contacts_rationale">To find archived calls by a contact\'s current name, including calls whose saved name is missing or outdated, the app reads the phone numbers of matching contacts. They are used only on this device and are never stored.</string>
     <string name="archived_badge">ARCHIVED</string>
     <string name="live_badge">LIVE</string>
     <string name="private_number">Private / unknown number</string>
