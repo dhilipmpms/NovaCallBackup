@@ -97,7 +97,7 @@ Search runs over every record of the selected backups, with no pagination or res
 count shown is the full number of matches. A name query matches a call's own cached name, and also
 every call to a number that carried that name on any searched call. With the optional "current
 contacts" switch (READ_CONTACTS, requested on first use), it also matches all numbers of matching
-contacts. Numbers match across formats (`+91 90870 54184`, `9087054184`, `09087054184`). Linking
+contacts. Numbers match across formats (`+91 98765 54321 `, `9876554321`, `09876554321`). Linking
 is by number only, so people who merely share a name are never merged. Identical rows inside one
 backup are all counted. A call present in several backups is shown once.
 
